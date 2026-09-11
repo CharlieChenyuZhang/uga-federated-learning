@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   poweredByHeader: false,
   agentRules: false,
+  // The dev-tool launcher overlaps the mobile sidebar's sign-out button.
+  devIndicators: false,
   async headers() {
     return [
       {

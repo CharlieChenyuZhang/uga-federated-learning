@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -75,28 +74,20 @@ export default function Evaluations({
   runs,
   user,
   onTrain,
-  initialId,
+  selectedId,
+  onSelect,
 }: {
   runs: Run[];
   user: User;
   onTrain: () => void;
-  initialId: string;
+  selectedId: string;
+  onSelect: (id: string) => void;
 }) {
-  const [choice, setChoice] = useState(initialId);
   const complete = runs.filter((r) => r.status === "completed" && r.metrics);
-  const run = complete.find((r) => r.id === choice) || complete[0];
+  const run = selectedId
+    ? complete.find((r) => r.id === selectedId)
+    : complete[0];
   const m = run?.metrics;
-  function download() {
-    if (!run) return;
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(run, null, 2)], { type: "application/json" }),
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `campus-evaluation-${run.id}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
   const change = m
     ? ((m.tuned.loss - m.baseline.loss) / m.baseline.loss) * 100
     : 0;
@@ -111,11 +102,11 @@ export default function Evaluations({
             examples.
           </p>
         </div>
-        {m && (
-          <button className="button" onClick={download}>
+        {m && run && (
+          <a className="button" href={`/api/runs/${run.id}/evaluation`}>
             <Download size={16} />
             Export evaluation
-          </button>
+          </a>
         )}
       </div>
       {!m ? (
@@ -123,12 +114,24 @@ export default function Evaluations({
           <div className="empty-icon">
             <FlaskConical size={30} />
           </div>
-          <h2>No evaluation results yet</h2>
+          <h2>
+            {selectedId
+              ? "Evaluation unavailable"
+              : "No evaluation results yet"}
+          </h2>
           <p>
-            {user.role === "contributor"
-              ? "Finish a training run to see real baseline and tuned metrics. We never fill this view with simulated scores."
-              : "Results will appear when a contributor shares a completed model."}
+            {selectedId
+              ? "This experiment has not completed or is no longer available to your account."
+              : user.role === "contributor"
+                ? "Finish a training run to see real baseline and tuned metrics. We never fill this view with simulated scores."
+                : "Results will appear when a contributor shares a completed model."}
           </p>
+          {!!complete.length && (
+            <button className="button" onClick={() => onSelect("")}>
+              View available evaluations
+              <ArrowRight size={16} />
+            </button>
+          )}
           {user.role === "contributor" && (
             <button className="button primary" onClick={onTrain}>
               Start an experiment
@@ -141,10 +144,7 @@ export default function Evaluations({
           <div className="evaluation-picker">
             <label className="field">
               Experiment
-              <select
-                value={run.id}
-                onChange={(e) => setChoice(e.target.value)}
-              >
+              <select value={run.id} onChange={(e) => onSelect(e.target.value)}>
                 {complete.map((r) => (
                   <option value={r.id} key={r.id}>
                     {r.name} · {schoolNames[r.school_id]} · {when(r.created)}

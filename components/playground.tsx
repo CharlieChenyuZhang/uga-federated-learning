@@ -41,7 +41,7 @@ export default function Playground({
         "Unavailable model";
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!prompt.trim()) return;
+    if (!prompt.trim() || pending || busy || !ready) return;
     setPending(true);
     setError("");
     const question = prompt;

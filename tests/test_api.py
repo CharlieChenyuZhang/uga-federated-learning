@@ -169,6 +169,42 @@ def test_upload_validation_and_retention(lab):
     assert lab.delete("/datasets/" + rid).status_code == 409
 
 
+def test_evaluation_download_authorization_and_redaction(lab):
+    assert lab.get("/runs/missing/evaluation").status_code == 401
+    login(lab)
+    ds = lab.post("/datasets/sample").json()
+    rid = insert_completed("uga", ds["id"])
+    url = f"/runs/{rid}/evaluation"
+    own = lab.get(url)
+    assert own.status_code == 200
+    assert own.headers["content-disposition"] == (
+        f'attachment; filename="campus-evaluation-{rid}.json"'
+    )
+    assert "no-store" in own.headers["cache-control"]
+    assert "PRIVATE HELD OUT PROMPT" in own.text
+    assert lab.get("/runs/missing/evaluation").status_code == 404
+    for account in ("gatech", "user"):
+        login(lab, account)
+        assert lab.get(url).status_code == 404
+    login(lab)
+    lab.patch(f"/runs/{rid}/sharing", json={"shared": True, "acknowledge_risk": True})
+    for account in ("gatech", "user"):
+        login(lab, account)
+        shared = lab.get(url)
+        assert shared.status_code == 200
+        assert "samples" not in shared.json()["metrics"]
+        assert "dataset_id" not in shared.json()
+        assert "history" not in shared.json()
+        assert "PRIVATE HELD OUT PROMPT" not in shared.text
+    login(lab)
+    lab.patch(f"/runs/{rid}/sharing", json={"shared": False})
+    login(lab, "user")
+    assert lab.get(url).status_code == 404
+    login(lab)
+    store.update_run(rid, status="running")
+    assert lab.get(url).status_code == 409
+
+
 def test_split_deduplicates_instructions_and_is_deterministic():
     data = sample_rows("uga")
     duplicated = data + [

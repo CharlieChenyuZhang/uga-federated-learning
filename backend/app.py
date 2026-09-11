@@ -342,6 +342,24 @@ def models(user=Depends(current_user)):
     ]
 
 
+@app.get("/runs/{run_id}/evaluation")
+def export_evaluation(run_id: str, user=Depends(current_user)):
+    run = store.one(
+        "SELECT * FROM runs WHERE id=? AND (school_id=? OR shared=1)",
+        (run_id, user["school_id"]),
+    )
+    if not run:
+        raise HTTPException(404, "Evaluation not available to this account.")
+    if run["status"] != "completed" or not run["metrics"]:
+        raise HTTPException(409, "This run does not have a completed evaluation yet.")
+    return JSONResponse(
+        store.public_run(run, run["school_id"] == user["school_id"]),
+        headers={
+            "Content-Disposition": f'attachment; filename="campus-evaluation-{run["id"]}.json"'
+        },
+    )
+
+
 class Sharing(BaseModel):
     shared: StrictBool
     acknowledge_risk: StrictBool = False

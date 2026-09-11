@@ -34,6 +34,23 @@ const titles: Record<Tab, string> = {
   privacy: "Sharing & privacy",
   playground: "Model playground",
 };
+function locationFor(user: User) {
+  const [page, query] = window.location.hash.slice(1).split("?");
+  const fallback = user.role === "user" ? "playground" : "overview";
+  const tab =
+    Object.hasOwn(titles, page) &&
+    (page !== "institution" || user.role === "contributor")
+      ? (page as Tab)
+      : fallback;
+  return {
+    tab,
+    evaluationId:
+      tab === "evaluations" ? new URLSearchParams(query).get("run") || "" : "",
+  };
+}
+function tabUrl(tab: Tab, evaluationId = "") {
+  return `#${tab}${tab === "evaluations" && evaluationId ? `?run=${encodeURIComponent(evaluationId)}` : ""}`;
+}
 export default function Workspace() {
   const [user, setUser] = useState<User | null>(null);
   const [boot, setBoot] = useState(true);
@@ -60,7 +77,18 @@ export default function Workspace() {
     setError("");
     setToast("");
     setUploadOpen(false);
-    setEvaluationId("");
+    const location = next
+      ? locationFor(next)
+      : { tab: "overview" as Tab, evaluationId: "" };
+    setTab(location.tab);
+    setEvaluationId(location.evaluationId);
+    window.history.replaceState(
+      null,
+      "",
+      next
+        ? tabUrl(location.tab, location.evaluationId)
+        : window.location.pathname,
+    );
   }
   const refresh = useCallback(async () => {
     if (!user || activeIdentity.current !== user.id) return;
@@ -98,6 +126,25 @@ export default function Workspace() {
     return () => clearInterval(timer);
   }, [refresh]);
   useEffect(() => {
+    if (!user) return;
+    const restoreLocation = () => {
+      const location = locationFor(user);
+      setTab(location.tab);
+      setEvaluationId(location.evaluationId);
+      setUploadOpen(false);
+      const canonical = tabUrl(location.tab, location.evaluationId);
+      if (window.location.hash !== canonical)
+        window.history.replaceState(null, "", canonical);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    };
+    window.addEventListener("hashchange", restoreLocation);
+    window.addEventListener("popstate", restoreLocation);
+    return () => {
+      window.removeEventListener("hashchange", restoreLocation);
+      window.removeEventListener("popstate", restoreLocation);
+    };
+  }, [user]);
+  useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(""), 5000);
       return () => clearTimeout(timer);
@@ -112,8 +159,14 @@ export default function Workspace() {
       setError((e as Error).message);
     }
   }
-  const navigate = (next: Tab) => {
+  const navigate = (next: Tab, id = "") => {
+    if (next === "institution" && user?.role !== "contributor")
+      next = "playground";
     setTab(next);
+    setEvaluationId(next === "evaluations" ? id : "");
+    setUploadOpen(false);
+    const url = tabUrl(next, id);
+    if (window.location.hash !== url) window.history.pushState(null, "", url);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const upload = () => {
@@ -132,7 +185,6 @@ export default function Workspace() {
       <Login
         onLogin={(u) => {
           beginSession(u);
-          setTab(u.role === "user" ? "playground" : "overview");
         }}
       />
     );
@@ -149,7 +201,7 @@ export default function Workspace() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <a className="brand" href="/">
+        <a className="brand" href="#overview">
           <span className="brand-mark">
             <Network size={22} />
           </span>
@@ -158,11 +210,11 @@ export default function Workspace() {
         <span className="workspace-label">RESEARCH WORKSPACE</span>
         <nav aria-label="Main navigation">
           {nav.map((n) => (
-            <button
+            <a
               key={n.id}
+              href={tabUrl(n.id)}
               title={titles[n.id]}
               className={`nav-item ${tab === n.id ? "active" : ""}`}
-              onClick={() => navigate(n.id)}
               aria-current={tab === n.id ? "page" : undefined}
             >
               <n.icon size={18} />
@@ -170,7 +222,7 @@ export default function Workspace() {
               {n.id === "institution" && active && (
                 <span className="nav-count">1</span>
               )}
-            </button>
+            </a>
           ))}
         </nav>
         <div className="sidebar-lab">
@@ -483,8 +535,9 @@ export default function Workspace() {
                               className="activity"
                               key={r.id}
                               onClick={() => {
-                                setEvaluationId(r.id);
-                                navigate("evaluations");
+                                if (r.status === "completed")
+                                  navigate("evaluations", r.id);
+                                else navigate("institution");
                               }}
                             >
                               <span
@@ -557,7 +610,7 @@ export default function Workspace() {
                   </div>
                 </>
               )}
-              {tab === "institution" && (
+              {tab === "institution" && user.role === "contributor" && (
                 <Institution
                   user={user}
                   datasets={datasets}
@@ -568,8 +621,7 @@ export default function Workspace() {
                   refresh={refresh}
                   notify={setToast}
                   onEvaluate={(id) => {
-                    setEvaluationId(id);
-                    navigate("evaluations");
+                    navigate("evaluations", id);
                   }}
                 />
               )}{" "}
@@ -577,7 +629,8 @@ export default function Workspace() {
                 <Evaluations
                   runs={runs}
                   user={user}
-                  initialId={evaluationId}
+                  selectedId={evaluationId}
+                  onSelect={(id) => navigate("evaluations", id)}
                   onTrain={() => navigate("institution")}
                 />
               )}{" "}
@@ -589,13 +642,13 @@ export default function Workspace() {
                   notify={setToast}
                 />
               )}{" "}
-              {tab === "playground" && (
+              <div hidden={tab !== "playground"} key={user.id}>
                 <Playground
                   models={models}
                   busy={overview.runtime.busy}
                   ready={overview.runtime.ml_available}
                 />
-              )}
+              </div>
             </>
           )}
         </main>
