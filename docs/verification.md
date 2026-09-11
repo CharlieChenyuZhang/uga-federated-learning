@@ -1,6 +1,6 @@
 # Local verification
 
-Verified on September 10, 2026 on an Apple M2 Max with 64 GiB unified memory, using Python 3.12, PyTorch 2.10, MPS, and the pinned TinyLlama revision documented in the README.
+Verified on September 10, 2026 on an Apple M2 Max with 64 GiB unified memory, using Python 3.12, PyTorch 2.10, MPS, and the pinned TinyLlama revision defined in [backend/ml.py](../backend/ml.py).
 
 ## Measured model results
 
