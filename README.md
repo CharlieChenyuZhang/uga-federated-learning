@@ -15,7 +15,7 @@ Requires Node.js 20.9+ and Python 3.10+ (3.12 recommended), or `uv` to provision
 
 Open [the local app](http://127.0.0.1:3000). For later sessions, run only `./scripts/dev.sh`. Ports 3000 and 8000 must be available.
 
-First use downloads approximately 2.2 GB of model weights, then reuses the cache. Tested on Apple M2 Max with 64 GB RAM; CPU and CUDA paths are unverified.
+The first training or chat request downloads approximately 2.2 GB of model weights; later requests use the cache. Tested on Apple M2 Max with 64 GB RAM; CPU and CUDA paths are unverified.
 
 ## Try the demo
 
@@ -40,7 +40,7 @@ Upload UTF-8 CSV or JSONL with `instruction` and `response` fields:
 {"instruction":"Explain gravity.","response":"Gravity attracts objects with mass."}
 ```
 
-Limits: 6–500 unique instructions, 2 MB per file, 1,500 characters per field, and 256 tokens per formatted training example. Use synthetic or approved de-identified data; automated screening is incomplete.
+Limits: 6–500 rows with at least 6 unique instructions, 2 MB per file, 1,500 characters per field, and 256 tokens per formatted training example. Use synthetic or approved de-identified data; automated screening is incomplete.
 
 ## Model and privacy
 
