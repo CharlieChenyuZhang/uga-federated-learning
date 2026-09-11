@@ -1,6 +1,6 @@
-# Campus: local federated learning lab
+# Campus: collaborative AI lab
 
-A working local research POC for three illustrative institutions to upload instruction-response datasets, fine-tune independent TinyLlama adapters, evaluate them, and deliberately share model access.
+A collaborative AI lab for campuses, research teams, and educators to explore ideas through independent workspaces. The current local POC includes three illustrative institution accounts to demonstrate dataset upload, TinyLlama fine-tuning, evaluation, and deliberate model sharing. They are examples, not a limit on the product concept. This version does not yet include self-service institution creation.
 
 **Stack:** Next.js 16 + React 19 + TypeScript; FastAPI + SQLite; PyTorch + Hugging Face Transformers + PEFT LoRA. No API key or hosted inference service is required.
 
@@ -60,6 +60,12 @@ UTF-8 CSV 或 JSONL，必须包含字符串字段 `instruction` 和 `response`�
 [Meta Llama 3.2 1B Instruct](https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct) 是后续可替换的官方小模型，但需要先接受 Meta 许可和访问授权。本 POC 没有加入未经验证的模型切换选项。
 
 LoRA 使用 rank 8、alpha 16、dropout 0.05，作用于 `q_proj` / `v_proj`；float32、batch 1、累积 2 个 micro-batch、学习率 2e-4。CPU 能运行但会明显更慢，CUDA 路径尚未实机验证。
+
+## 入口页与信息流动画
+
+入口页以多个校园、研究团队和教育者的协作为主题，示例学校不代表产品容量上限。概念图连接不同参与者与模型、教学工具和新想法；实际工作区数量从 API 返回的示例列表计算。
+
+动画使用开源 MIT 许可的 [Motion for React](https://motion.dev/docs/react)，设计参考 [Magic UI Animated Beam](https://magicui.design/docs/components/animated-beam) 的流动连接形式，但没有复制其组件代码。实现包含沿 SVG 曲线移动的粒子、柔和形变的中心节点、暂停/继续、系统减少动态效果支持，以及页面隐藏或图表离开视口时暂停。动画是协作概念示意，不表示正在传输私有数据，也不是实时训练遥测。
 
 ## 隐私边界
 

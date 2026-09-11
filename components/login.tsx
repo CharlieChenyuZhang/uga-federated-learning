@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { api, json, User } from "./api";
+import KnowledgeFlow from "./knowledge-flow";
 export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
   const [role, setRole] = useState("contributor");
   const [school, setSchool] = useState("uga");
@@ -43,60 +44,31 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
           campus<span className="brand-dot">.</span>
         </a>
         <div className="login-story-body">
-          <span className="badge">FEDERATED LEARNING LAB</span>
+          <span className="badge">COLLABORATIVE AI LAB</span>
           <h1>
-            Shared knowledge.
+            Different perspectives.
             <br />
-            <span>Independent learning.</span>
+            <span>Shared possibilities.</span>
           </h1>
           <p>
-            A small model. Three campus workspaces.
-            <br />A clearer path from local data to better teaching.
+            A place for campuses, research teams, and educators to explore AI
+            together. Bring your questions, knowledge, and ideas.
           </p>
-          <div
-            className="login-network"
-            aria-label="Three independent school workspaces use a common TinyLlama base model"
-          >
-            <div className="network-base">
-              <Network size={24} />
-              <span>
-                TinyLlama <small>Shared foundation · 1.1B</small>
-              </span>
-            </div>
-            <div className="network-branches">
-              <span />
-              <span />
-              <span />
-            </div>
-            <div className="network-schools">
-              <div>
-                <b>UG</b>
-                <span>Georgia</span>
-              </div>
-              <div>
-                <b>GT</b>
-                <span>Georgia Tech</span>
-              </div>
-              <div>
-                <b>EU</b>
-                <span>Emory</span>
-              </div>
-            </div>
-          </div>
+          <KnowledgeFlow />
           <div className="login-story-note">
             <LockKeyhole size={16} />
-            <span>Private datasets. Deliberate sharing.</span>
+            <span>Independent workspaces. Deliberate sharing.</span>
           </div>
         </div>
         <div className="login-foot">
-          LOCAL RESEARCH POC <span>STEM+C EDUCATION</span>
+          LOCAL RESEARCH POC <span>ROOM FOR NEW IDEAS</span>
         </div>
       </section>
       <section className="login-form-side">
         <div className="login-form-wrap">
           <span className="eyebrow">YOUR RESEARCH STARTS HERE</span>
-          <h2>Welcome to the lab.</h2>
-          <p>Choose how you want to participate.</p>
+          <h2>Find your starting point.</h2>
+          <p>Contribute an experiment or explore shared models.</p>
           <form onSubmit={submit}>
             <div className="role-options">
               <button
@@ -128,7 +100,7 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
             </div>
             {role === "contributor" ? (
               <label className="field">
-                Institution
+                Example workspace
                 <select
                   value={school}
                   onChange={(e) => setSchool(e.target.value)}
@@ -173,8 +145,8 @@ export default function Login({ onLogin }: { onLogin: (user: User) => void }) {
           <div className="login-disclaimer">
             <LockKeyhole size={16} />
             <p>
-              Demo accounts for this computer only. Institution names are
-              illustrative; no real student data is included.
+              These sample workspaces illustrate a wider network. Demo accounts
+              run on this computer; institution names are illustrative.
             </p>
           </div>
         </div>

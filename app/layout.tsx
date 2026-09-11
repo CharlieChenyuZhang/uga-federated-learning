@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: "Campus | Federated Learning Lab",
+  title: "Campus | Collaborative AI Lab",
   description:
-    "A local research workspace for private campus datasets, small language model tuning, and transparent evaluation.",
+    "A collaborative AI lab for campuses, research teams, and educators to explore ideas through independent local experiments.",
 };
 export default function RootLayout({
   children,

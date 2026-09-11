@@ -1141,93 +1141,121 @@ main {
   font-size: 12px;
   letter-spacing: 1.6px;
 }
-.login-network {
-  padding: 48px 26px 30px;
-  margin: 0 auto;
-  max-width: 410px;
+/* Motion-powered conceptual information flow */
+.knowledge-flow {
+  margin: 30px -10px 20px;
 }
-.network-base {
-  width: 225px;
+.flow-heading {
   display: flex;
   align-items: center;
-  gap: 13px;
-  margin: 0 auto;
-  padding: 16px 20px;
-  border: 1px solid #465884;
-  border-radius: 11px;
-  background: #203252;
-  color: #afc0f4;
-}
-.network-base > span {
-  font-size: 14px;
-  font-weight: 600;
-}
-.network-base small {
-  display: block;
-  font-size: 12px;
-  margin-top: 5px;
-  color: #7e95c0;
-  font-weight: 400;
-}
-.network-branches {
-  height: 51px;
-  display: flex;
-  justify-content: space-between;
-  margin: 0 35px;
-  border-top: 1px solid #405376;
-  position: relative;
-  top: 25px;
-}
-.network-branches:before {
-  position: absolute;
-  content: "";
-  width: 1px;
-  height: 25px;
-  background: #405376;
-  top: -25px;
-  left: 50%;
-}
-.network-branches > span {
-  height: 26px;
-  width: 1px;
-  background: #405376;
-}
-.network-schools {
-  display: flex;
   justify-content: space-between;
   gap: 12px;
+  padding: 0 15px;
 }
-.network-schools > div {
-  width: 80px;
+.flow-heading > span {
+  font-size: 12px;
+  letter-spacing: 1.6px;
+  color: #a1b1d2;
+}
+.flow-playback {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  border: 1px solid #36476c;
+  border-radius: 6px;
+  background: #1a2a48;
+  color: #aabada;
+  font-size: 12px;
+  padding: 5px 9px;
+}
+.flow-playback:hover {
+  background: #26395d;
+}
+.flow-playback:disabled {
+  opacity: 0.8;
+}
+.flow-stage {
+  width: 100%;
+  height: 280px;
+  position: relative;
+}
+.flow-connections {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.flow-node {
+  position: absolute;
+  transform: translate(-50%, -21px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
+  gap: 7px;
   text-align: center;
+  color: #b2c1df;
+  font-size: 12px;
+  line-height: 1.4;
 }
-.network-schools b {
+.flow-node-icon {
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
-  border: 1px solid #3d5278;
-  width: 53px;
-  height: 53px;
-  border-radius: 13px;
-  background: #263753;
-  color: #b4c3e7;
-  font-size: 17px;
-  margin: 0 auto;
+  color: #acbaff;
+  border: 1px solid #46567f;
+  border-radius: 12px;
+  background: #213150;
+  box-shadow: 0 0 0 5px #14213d;
 }
-.network-schools > div:nth-child(1) b {
-  color: #e3b4c4;
-  background: #3b3049;
-  border-color: #574156;
+.flow-node-out .flow-node-icon {
+  color: #9ed3cc;
+  border-color: #3d656b;
+  background: #1d374b;
 }
-.network-schools > div:nth-child(2) b {
-  color: #d9c59b;
-  background: #3a3944;
-  border-color: #58524d;
+.flow-hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 112px;
+  height: 112px;
+  transform: translate(-50%, -50%);
 }
-.network-schools span {
-  display: block;
+.flow-liquid {
+  position: absolute;
+  inset: 0;
+  border-radius: 44% 56% 62% 38% / 44% 38% 62% 56%;
+  background: linear-gradient(135deg, #516be3 5%, #747de8 45%, #579eac);
+  box-shadow:
+    0 0 45px #7685ee30,
+    inset 0 0 22px #cad3ff25;
+}
+.flow-hub-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #f5f6ff;
+}
+.flow-hub-content strong {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+}
+.knowledge-flow figcaption {
+  color: #9aaccf;
+  text-align: center;
   font-size: 12px;
-  color: #8196bd;
-  margin-top: 11px;
+  line-height: 1.7;
+  max-width: 340px;
+  margin: 0 auto;
 }
 .login-story-note {
   display: flex;
@@ -2373,9 +2401,6 @@ td:first-child {
   .login-form-side {
     padding: 32px;
   }
-  .login-network {
-    padding: 40px 5px 25px;
-  }
   .login-story-body > p {
     font-size: 14px;
   }
@@ -2478,9 +2503,7 @@ td:first-child {
   .login-story h1 span {
     display: block;
   }
-  .login-story-body > p,
   .login-story-note,
-  .login-network,
   .login-foot {
     display: none;
   }
@@ -2773,5 +2796,77 @@ td:first-child {
   }
   .login-form-wrap > p {
     font-size: 14px;
+  }
+}
+
+/* Keep the conceptual flow legible without letting it dominate the sign-in form. */
+.login-story-body {
+  padding: 40px 0;
+  max-width: 540px;
+}
+.login-story h1 {
+  font-size: clamp(1.8rem, 3.1vw, 2.8rem);
+}
+.login-story-body > p {
+  max-width: 470px;
+}
+@media (max-width: 1100px) and (min-width: 801px) {
+  .flow-hub {
+    width: 94px;
+    height: 94px;
+  }
+  .flow-hub-content strong {
+    font-size: 12px;
+  }
+  .flow-node {
+    width: 84px;
+  }
+}
+@media (max-width: 800px) {
+  .login-story-body {
+    padding: 24px 0 8px;
+  }
+  .login-story-body > p {
+    display: block;
+    margin: 16px 0 0;
+    font-size: 14px;
+    max-width: 480px;
+  }
+  .knowledge-flow {
+    max-width: 470px;
+    margin: 24px auto 10px;
+  }
+  .flow-stage {
+    height: 250px;
+  }
+  .flow-hub {
+    width: 100px;
+    height: 100px;
+  }
+  .flow-node {
+    width: 86px;
+  }
+}
+@media (max-width: 380px) {
+  .flow-heading {
+    padding: 0;
+  }
+  .flow-heading > span {
+    letter-spacing: 0.8px;
+  }
+  .flow-hub {
+    width: 90px;
+    height: 90px;
+  }
+  .flow-hub-content strong {
+    font-size: 12px;
+  }
+  .flow-node {
+    width: 76px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-stream {
+    display: none;
   }
 }

@@ -267,7 +267,7 @@ export default function Privacy({
         <div>
           <strong>Local collaboration POC, not a privacy certification.</strong>
           <p>
-            All three workspaces run on a single local server. This
+            The example workspaces run on a single local server. This
             implementation does not claim FERPA/GDPR compliance, cryptographic
             isolation, or protection from model inversion. Use synthetic or
             approved de-identified data.

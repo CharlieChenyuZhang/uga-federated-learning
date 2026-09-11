@@ -183,9 +183,9 @@ export default function Workspace() {
         <div className="sidebar-bottom">
           <span className="badge">LOCAL POC</span>
           <p>
-            Three institutions.
+            Independent workspaces.
             <br />
-            One shared starting point.
+            Connected ideas.
           </p>
           <div className="profile">
             <div className={`avatar ${ownSchool?.color || "blue"}`}>
@@ -268,11 +268,11 @@ export default function Workspace() {
                 <>
                   <div className="page-heading">
                     <div>
-                      <div className="eyebrow">FEDERATED LEARNING LAB</div>
-                      <h1>Better models, together.</h1>
+                      <div className="eyebrow">COLLABORATIVE AI LAB</div>
+                      <h1>Shared ideas. Local experiments.</h1>
                       <p>
-                        A shared foundation. An independent learning space for
-                        every campus.
+                        Explore how different communities can learn, build, and
+                        share across independent workspaces.
                       </p>
                     </div>
                     <button
@@ -296,9 +296,9 @@ export default function Workspace() {
                   <div className="metric-grid">
                     {[
                       [
-                        "Participating institutions",
-                        "03",
-                        "Illustrative campus workspaces",
+                        "Example workspaces",
+                        String(overview.schools.length).padStart(2, "0"),
+                        "Sample communities in this local POC",
                       ],
                       [
                         "Base model",
@@ -343,12 +343,12 @@ export default function Workspace() {
                   <section className="panel network-panel">
                     <div className="section-title">
                       <div>
-                        <h2>The campus network</h2>
+                        <h2>Explore the example network</h2>
                         <p>
                           Start from the same model. Learn from your own data.
                         </p>
                       </div>
-                      <span className="badge">3 INSTITUTIONS</span>
+                      <span className="badge">DEMO WORKSPACES</span>
                     </div>
                     <div className="foundation-strip">
                       <div className="foundation-icon">
