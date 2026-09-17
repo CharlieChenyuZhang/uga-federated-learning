@@ -1,6 +1,6 @@
 # Campus: Collaborative AI Lab
 
-A local app for campuses and research teams to fine-tune TinyLlama, evaluate results, and share model access. Includes three example institutions; workspace creation is not implemented yet.
+A local app for campuses and research teams to fine-tune TinyLlama, combine school updates with federated averaging, evaluate results, and share model access. Includes three example institutions; workspace creation is not implemented yet.
 
 **Stack:** Next.js + TypeScript, FastAPI + SQLite, and PyTorch + PEFT LoRA. No API key is required.
 
@@ -32,6 +32,8 @@ All demo accounts use the password **`local-lab`**.
 4. Open **Evaluations** to compare measured base/tuned loss, perplexity, and responses.
 5. Enable model access in **Sharing & privacy**, then sign in as User to try it in **Model playground**.
 
+For a shared model, open **Federated learning** and create a collaboration. Join with your school's dataset, sign out, and sign in as another school to join the same draft. Return to the coordinating school and **Start rounds**. Inspect round metrics, export the report, and **Try global model**. Guest sharing is managed on this page.
+
 ## Dataset format
 
 Upload UTF-8 CSV or JSONL with `instruction` and `response` fields:
@@ -44,9 +46,9 @@ Limits: 6–500 rows with at least 6 unique instructions, 2 MB per file, 1,500 c
 
 ## Model and privacy
 
-Each run trains an independent LoRA adapter on [TinyLlama 1.1B Chat](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0). One model job runs at a time. Data and adapters stay in ignored `.local/` storage.
+School runs train independent LoRA adapters on [TinyLlama 1.1B Chat](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0). Federated rounds start every school from the same global adapter and average LoRA factors by training-example count. One model job runs at a time. Data and adapters stay in ignored `.local/` storage.
 
-This single-computer POC shares inference access and numeric metrics, not datasets or adapter downloads. Embedding export is disabled. Model outputs can still reveal training data. Distributed federated training, differential privacy, secure aggregation, and production authentication are not implemented. Keep the demo on localhost.
+This is real training and aggregation simulated on one computer. It shares inference access and numeric metrics, not datasets or adapter downloads. Embedding export is disabled. Model outputs can still reveal training data. Remote school workers, differential privacy, secure aggregation, and production authentication are not implemented. Keep the demo on localhost. See [the federation method and boundaries](docs/federation.md).
 
 ## Checks
 
