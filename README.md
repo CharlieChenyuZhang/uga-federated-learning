@@ -34,6 +34,8 @@ All demo accounts use the password **`local-lab`**.
 
 For a shared model, open **Federated learning** and create a collaboration. Join with your school's dataset, sign out, and sign in as another school to join the same draft. Return to the coordinating school and **Start rounds**. Inspect round metrics, export the report, and **Try global model**. Guest sharing is managed on this page.
 
+Both training forms include **Base model** and **Fine-tuning method** dropdowns. TinyLlama + LoRA is currently available; alternatives marked **Coming soon** are disabled.
+
 ## Dataset format
 
 Upload UTF-8 CSV or JSONL with `instruction` and `response` fields:

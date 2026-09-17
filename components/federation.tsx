@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import ModelConfiguration from "./model-configuration";
 import {
   ArrowRight,
   Check,
@@ -143,7 +144,10 @@ export default function FederatedLearning({
         <div className="federation-method-title">
           <GitMerge size={21} />
           <div>
-            <strong>FedAvg · LoRA</strong>
+            <strong>Aggregation method: FedAvg</strong>
+            <span>
+              Base model: TinyLlama 1.1B Chat · Fine-tuning method: LoRA
+            </span>
             <span>Real training. One local computer.</span>
           </div>
         </div>
@@ -186,6 +190,7 @@ export default function FederatedLearning({
             <Users size={20} />
           </div>
           <form onSubmit={create}>
+            <ModelConfiguration />
             <div className="federation-create-fields">
               <label className="field">
                 Collaboration name

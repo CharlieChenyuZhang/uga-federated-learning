@@ -669,6 +669,26 @@ main {
 }
 
 /* Federated collaborations */
+.model-configuration {
+  margin-bottom: 20px;
+}
+.model-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 14px;
+}
+.model-option-grid .field {
+  min-width: 0;
+  margin-bottom: 0;
+}
+.model-option-grid select {
+  width: 100%;
+  min-width: 0;
+}
+.model-configuration .field-help {
+  margin: 10px 0 0;
+  color: #657086;
+}
 .federation-method {
   padding: 24px 26px;
   margin-bottom: 28px;
