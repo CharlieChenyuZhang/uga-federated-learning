@@ -9,6 +9,7 @@ import {
   Cpu,
   Database,
   FlaskConical,
+  GitMerge,
   LayoutDashboard,
   LockKeyhole,
   LogOut,
@@ -24,15 +25,31 @@ import Institution from "./institution";
 import Evaluations from "./evaluations";
 import Privacy from "./privacy";
 import Playground from "./playground";
-import { api, json, User, Overview, Dataset, Run, when } from "./api";
+import FederatedLearning from "./federation";
+import {
+  api,
+  json,
+  User,
+  Overview,
+  Dataset,
+  Run,
+  Federation,
+  when,
+} from "./api";
 type Tab =
-  "overview" | "institution" | "evaluations" | "privacy" | "playground";
+  | "overview"
+  | "institution"
+  | "evaluations"
+  | "privacy"
+  | "playground"
+  | "federation";
 const titles: Record<Tab, string> = {
   overview: "Overview",
   institution: "My institution",
   evaluations: "Evaluations",
   privacy: "Sharing & privacy",
   playground: "Model playground",
+  federation: "Federated learning",
 };
 function locationFor(user: User) {
   const [page, query] = window.location.hash.slice(1).split("?");
@@ -46,10 +63,16 @@ function locationFor(user: User) {
     tab,
     evaluationId:
       tab === "evaluations" ? new URLSearchParams(query).get("run") || "" : "",
+    modelId:
+      tab === "playground"
+        ? new URLSearchParams(query).get("model") || "base"
+        : "base",
   };
 }
-function tabUrl(tab: Tab, evaluationId = "") {
-  return `#${tab}${tab === "evaluations" && evaluationId ? `?run=${encodeURIComponent(evaluationId)}` : ""}`;
+function tabUrl(tab: Tab, selectedId = "") {
+  const query =
+    tab === "evaluations" ? "run" : tab === "playground" ? "model" : "";
+  return `#${tab}${query && selectedId && selectedId !== "base" ? `?${query}=${encodeURIComponent(selectedId)}` : ""}`;
 }
 export default function Workspace() {
   const [user, setUser] = useState<User | null>(null);
@@ -59,6 +82,7 @@ export default function Workspace() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [models, setModels] = useState<Run[]>([]);
+  const [federations, setFederations] = useState<Federation[]>([]);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -66,6 +90,7 @@ export default function Workspace() {
   const sessionEpoch = useRef(0);
   const activeIdentity = useRef<string | null>(null);
   const [evaluationId, setEvaluationId] = useState("");
+  const [playgroundModelId, setPlaygroundModelId] = useState("base");
   function beginSession(next: User | null) {
     sessionEpoch.current++;
     activeIdentity.current = next?.id || null;
@@ -73,20 +98,27 @@ export default function Workspace() {
     setOverview(null);
     setRuns([]);
     setModels([]);
+    setFederations([]);
     setDatasets([]);
     setError("");
     setToast("");
     setUploadOpen(false);
     const location = next
       ? locationFor(next)
-      : { tab: "overview" as Tab, evaluationId: "" };
+      : { tab: "overview" as Tab, evaluationId: "", modelId: "base" };
     setTab(location.tab);
     setEvaluationId(location.evaluationId);
+    setPlaygroundModelId(location.modelId);
     window.history.replaceState(
       null,
       "",
       next
-        ? tabUrl(location.tab, location.evaluationId)
+        ? tabUrl(
+            location.tab,
+            location.tab === "playground"
+              ? location.modelId
+              : location.evaluationId,
+          )
         : window.location.pathname,
     );
   }
@@ -94,13 +126,14 @@ export default function Workspace() {
     if (!user || activeIdentity.current !== user.id) return;
     const epoch = sessionEpoch.current;
     try {
-      const [o, r, m, d] = await Promise.all([
+      const [o, r, m, d, f] = await Promise.all([
         api<Overview>("/overview"),
         api<Run[]>("/runs"),
         api<Run[]>("/models"),
         user.role === "contributor"
           ? api<Dataset[]>("/datasets")
           : Promise.resolve([]),
+        api<Federation[]>("/federations"),
       ]);
       if (epoch !== sessionEpoch.current || activeIdentity.current !== user.id)
         return;
@@ -108,6 +141,7 @@ export default function Workspace() {
       setRuns(r);
       setModels(m);
       setDatasets(d);
+      setFederations(f);
       setError("");
     } catch (e) {
       if (epoch === sessionEpoch.current && activeIdentity.current === user.id)
@@ -131,8 +165,14 @@ export default function Workspace() {
       const location = locationFor(user);
       setTab(location.tab);
       setEvaluationId(location.evaluationId);
+      if (location.tab === "playground") setPlaygroundModelId(location.modelId);
       setUploadOpen(false);
-      const canonical = tabUrl(location.tab, location.evaluationId);
+      const canonical = tabUrl(
+        location.tab,
+        location.tab === "playground"
+          ? location.modelId
+          : location.evaluationId,
+      );
       if (window.location.hash !== canonical)
         window.history.replaceState(null, "", canonical);
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -164,6 +204,7 @@ export default function Workspace() {
       next = "playground";
     setTab(next);
     setEvaluationId(next === "evaluations" ? id : "");
+    if (next === "playground") setPlaygroundModelId(id || "base");
     setUploadOpen(false);
     const url = tabUrl(next, id);
     if (window.location.hash !== url) window.history.pushState(null, "", url);
@@ -194,6 +235,7 @@ export default function Workspace() {
   const nav = [
     { id: "overview" as Tab, icon: LayoutDashboard },
     { id: "institution" as Tab, icon: Building2 },
+    { id: "federation" as Tab, icon: GitMerge },
     { id: "playground" as Tab, icon: MessageSquare },
     { id: "evaluations" as Tab, icon: FlaskConical },
     { id: "privacy" as Tab, icon: ShieldCheck },
@@ -212,7 +254,10 @@ export default function Workspace() {
           {nav.map((n) => (
             <a
               key={n.id}
-              href={tabUrl(n.id)}
+              href={tabUrl(
+                n.id,
+                n.id === "playground" ? playgroundModelId : "",
+              )}
               title={titles[n.id]}
               className={`nav-item ${tab === n.id ? "active" : ""}`}
               aria-current={tab === n.id ? "page" : undefined}
@@ -409,7 +454,8 @@ export default function Workspace() {
                       <div>
                         <strong>One shared foundation</strong>
                         <span>
-                          TinyLlama-1.1B-Chat · Independent LoRA adapters
+                          TinyLlama-1.1B-Chat · School adapters & federated
+                          rounds
                         </span>
                       </div>
                       <span className="foundation-tag">
@@ -488,6 +534,15 @@ export default function Workspace() {
                           },
                           {
                             n: "03",
+                            title: "Learn across schools",
+                            detail: "Combine local updates with FedAvg.",
+                            done: federations.some(
+                              (f) => f.is_member && f.status === "completed",
+                            ),
+                            target: "federation" as Tab,
+                          },
+                          {
+                            n: "04",
                             title: "Measure, then decide",
                             detail: "Compare results before enabling access.",
                             done: completed.some((r) => r.shared),
@@ -642,9 +697,24 @@ export default function Workspace() {
                   notify={setToast}
                 />
               )}{" "}
-              <div hidden={tab !== "playground"} key={user.id}>
+              {tab === "federation" && (
+                <FederatedLearning
+                  key={`federation-${user.id}`}
+                  user={user}
+                  federations={federations}
+                  datasets={datasets}
+                  runtime={overview.runtime}
+                  refresh={refresh}
+                  notify={setToast}
+                  onTryModel={(id) => navigate("playground", id)}
+                  onDatasets={() => navigate("institution")}
+                />
+              )}
+              <div hidden={tab !== "playground"} key={`playground-${user.id}`}>
                 <Playground
                   models={models}
+                  selectedModelId={playgroundModelId}
+                  onSelectModel={(id) => navigate("playground", id)}
                   busy={overview.runtime.busy}
                   ready={overview.runtime.ml_available}
                 />

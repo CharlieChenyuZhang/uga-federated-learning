@@ -141,20 +141,27 @@ def generate(model, tokenizer, device, prompt, max_new_tokens=96):
     ).strip()
 
 
-def train(run, rows, output_path, report):
+def reset_adapter(model, seed=42):
+    """Initialize one fresh adapter without changing pretrained base weights."""
     import torch
-    from .data import split_dataset
 
-    report(phase="Loading TinyLlama (first run downloads 2.2 GB)")
-    model, tokenizer, device = load()
     # Start each school run from an identical adapter initialization, never the prior school's update.
-    torch.manual_seed(42)
+    torch.manual_seed(seed)
     for name, parameter in model.named_parameters():
         if "lora_A" in name:
             torch.nn.init.kaiming_uniform_(parameter, a=math.sqrt(5))
         elif "lora_B" in name:
             torch.nn.init.zeros_(parameter)
     model.set_adapter("default")
+
+
+def train(run, rows, output_path, report):
+    import torch
+    from .data import split_dataset
+
+    report(phase="Loading TinyLlama (first run downloads 2.2 GB)")
+    model, tokenizer, device = load()
+    reset_adapter(model)
     training, validation = split_dataset(rows)
     encoded_train = [encode(tokenizer, row, device) for row in training]
     encoded_eval = [encode(tokenizer, row, device) for row in validation]
