@@ -22,18 +22,22 @@ export default function Playground({
   models,
   busy,
   ready,
+  selectedModelId,
+  onSelectModel,
 }: {
   models: Run[];
   busy: boolean;
   ready: boolean;
+  selectedModelId: string;
+  onSelectModel: (id: string) => void;
 }) {
-  const [model, setModel] = useState("base");
   const [prompt, setPrompt] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [exchanges, setExchanges] = useState<Exchange[]>([]);
-  const effectiveModel =
-    model === "base" || models.some((m) => m.id === model) ? model : "base";
+  const modelAvailable =
+    selectedModelId === "base" || models.some((m) => m.id === selectedModelId);
+  const effectiveModel = selectedModelId;
   const selected =
     effectiveModel === "base"
       ? "TinyLlama base"
@@ -41,7 +45,7 @@ export default function Playground({
         "Unavailable model";
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!prompt.trim() || pending || busy || !ready) return;
+    if (!prompt.trim() || pending || busy || !ready || !modelAvailable) return;
     setPending(true);
     setError("");
     const question = prompt;
@@ -69,8 +73,8 @@ export default function Playground({
           <div className="eyebrow">TRY THE LEARNING</div>
           <h1>A small model, in conversation.</h1>
           <p>
-            Explore the foundation model or an available school adapter with a
-            single-turn question.
+            Explore the foundation model, a school adapter, or a federated model
+            with a single-turn question.
           </p>
         </div>
         <button
@@ -96,9 +100,14 @@ export default function Playground({
               <select
                 aria-label="Active model"
                 value={effectiveModel}
-                onChange={(e) => setModel(e.target.value)}
+                onChange={(e) => onSelectModel(e.target.value)}
                 disabled={pending}
               >
+                {!modelAvailable && (
+                  <option value={selectedModelId} disabled>
+                    Requested model unavailable
+                  </option>
+                )}
                 <option value="base">TinyLlama base · 1.1B</option>
                 {models.map((m) => (
                   <option value={m.id} key={m.id}>
@@ -173,6 +182,13 @@ export default function Playground({
               {error}
             </div>
           )}
+          {!modelAvailable && (
+            <div className="error-box" role="status">
+              This model is not currently available to your account. Choose an
+              available model above, or wait for a newly completed model to
+              appear.
+            </div>
+          )}
           <form className="chat-compose" onSubmit={submit}>
             <label className="sr-only" htmlFor="prompt">
               Your question
@@ -196,7 +212,9 @@ export default function Playground({
               <span>Each question is independent · {prompt.length}/2,000</span>
               <button
                 className="button primary"
-                disabled={!prompt.trim() || pending || busy || !ready}
+                disabled={
+                  !prompt.trim() || pending || busy || !ready || !modelAvailable
+                }
                 aria-label="Send question"
               >
                 {pending ? (

@@ -117,14 +117,19 @@ export default function Privacy({
                   "No download endpoint",
                 ],
                 [
-                  "Model inference access",
+                  "School model inference access",
                   "Institution only",
                   "Only after contributor enables sharing",
                 ],
                 [
-                  "Aggregate evaluation metrics",
+                  "School evaluation metrics",
                   "Institution only",
                   "Included with shared model access",
+                ],
+                [
+                  "Federated global model & numeric metrics",
+                  "Participating schools",
+                  "Owner can share; any participant can revoke",
                 ],
               ].map(([a, b, c]) => (
                 <tr key={a}>
@@ -140,6 +145,20 @@ export default function Privacy({
           </table>
         </div>
       </section>
+      <div className="info-banner">
+        <Network size={21} />
+        <div>
+          <strong>Sharing a federated model?</strong>
+          <p>
+            Participating schools can access the global model and numeric
+            results. Its owner can share that access with signed-in users, and
+            any participant can revoke it.
+          </p>
+          <a className="text-button" href="#federation">
+            Manage federated collaborations
+          </a>
+        </div>
+      </div>
       {user.role === "contributor" && (
         <section className="panel">
           <div className="section-title">
@@ -236,6 +255,7 @@ export default function Privacy({
             "Explicit, revocable model access",
             "Common-pattern PII screening on uploads",
             "Held-out evaluation before sharing",
+            "Consented federated rounds with LoRA factor aggregation",
           ].map((t) => (
             <p key={t}>
               <Check size={16} />
@@ -250,7 +270,6 @@ export default function Privacy({
           </div>
           {[
             "Separate institution-owned machines",
-            "Federated rounds and adapter aggregation",
             "Differential privacy with an explicit budget",
             "Secure aggregation or encrypted computation",
             "Identity verification and production access controls",

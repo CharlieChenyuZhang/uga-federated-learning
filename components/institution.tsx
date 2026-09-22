@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import ModelConfiguration from "./model-configuration";
 import {
   ArrowRight,
   CheckCircle2,
@@ -282,20 +283,7 @@ export default function Institution({
                 required
               />
             </label>
-            <div className="training-settings">
-              <div>
-                <span>Base model</span>
-                <strong>TinyLlama 1.1B</strong>
-              </div>
-              <div>
-                <span>Method</span>
-                <strong>LoRA · rank 8</strong>
-              </div>
-              <div>
-                <span>Context</span>
-                <strong>256 tokens</strong>
-              </div>
-            </div>
+            <ModelConfiguration />
             <label className="field">
               Training budget
               <select

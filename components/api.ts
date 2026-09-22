@@ -31,6 +31,7 @@ export type Metrics = {
   seed: number;
   model: string;
   revision: string;
+  method?: string;
   samples?: {
     instruction: string;
     expected: string;
@@ -63,6 +64,40 @@ export type Overview = {
     model: string;
     mode: string;
   };
+};
+export type FederationRound = {
+  round: number;
+  global: Scores;
+  start_sha256: string;
+  adapter_sha256: string;
+  clients: {
+    school_id: string;
+    train_examples: number;
+    eval_examples: number;
+    weight: number;
+    before: Scores;
+    local: Scores;
+    global: Scores;
+  }[];
+};
+export type Federation = {
+  id: string;
+  name: string;
+  owner_school_id: string;
+  status: "draft" | "queued" | "running" | "completed" | "failed";
+  rounds: number;
+  local_steps: number;
+  round: number;
+  phase: string;
+  shared: number;
+  created: number;
+  finished: number | null;
+  is_member: boolean;
+  is_owner: boolean;
+  participants: { school_id: string; joined: number; dataset_id?: string }[];
+  history?: FederationRound[];
+  metrics?: Metrics | null;
+  error?: string;
 };
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
@@ -98,4 +133,5 @@ export const schoolNames: Record<string, string> = {
   uga: "University of Georgia",
   gatech: "Georgia Tech",
   emory: "Emory University",
+  federation: "Federated model",
 };

@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from . import ml, store
+from . import federation, ml, store
 from .data import parse_dataset, sample_rows
 
 log = logging.getLogger("campus")
@@ -213,6 +213,7 @@ def template(user=Depends(contributor)):
 @app.delete("/datasets/{dataset_id}")
 def delete_dataset(dataset_id: str, user=Depends(contributor)):
     with store.connect() as db:
+        db.execute("BEGIN IMMEDIATE")
         row = db.execute(
             "SELECT id FROM datasets WHERE id=? AND school_id=?",
             (dataset_id, user["school_id"]),
@@ -225,6 +226,13 @@ def delete_dataset(dataset_id: str, user=Depends(contributor)):
             raise HTTPException(
                 409,
                 "This dataset is linked to a training run and is retained for reproducibility.",
+            )
+        if db.execute(
+            "SELECT 1 FROM federation_participants WHERE dataset_id=?", (dataset_id,)
+        ).fetchone():
+            raise HTTPException(
+                409,
+                "This dataset is enrolled in a federation. Withdraw before training starts to remove it; started experiments retain datasets for reproducibility.",
             )
         db.execute("DELETE FROM datasets WHERE id=?", (dataset_id,))
     return {"ok": True}
@@ -339,7 +347,7 @@ def models(user=Depends(current_user)):
     )
     return [
         store.public_run(row, row["school_id"] == user["school_id"]) for row in found
-    ]
+    ] + federation.models(user)
 
 
 @app.get("/runs/{run_id}/evaluation")
@@ -393,7 +401,10 @@ def chat(body: Chat, user=Depends(current_user)):
     adapter_path = None
     if not body.prompt.strip():
         raise HTTPException(422, "Enter a question.")
-    if body.model_id != "base":
+    if body.model_id.startswith("f-"):
+        run = federation.accessible_model(body.model_id, user)
+        adapter_path = store.DATA / "federations" / run["id"] / "global"
+    elif body.model_id != "base":
         run = store.one(
             "SELECT * FROM runs WHERE id=? AND status='completed' AND (shared=1 OR school_id=?)",
             (body.model_id, user["school_id"]),
@@ -424,3 +435,6 @@ def chat(body: Chat, user=Depends(current_user)):
         ) from None
     finally:
         MODEL_LOCK.release()
+
+
+federation.register_routes(app, current_user, contributor, MODEL_LOCK)

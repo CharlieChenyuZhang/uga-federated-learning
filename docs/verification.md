@@ -1,5 +1,31 @@
 # Local verification
 
+## Federated aggregation, September 17, 2026
+
+Ran `scripts/smoke-federated.py --rounds 2 --steps 2` through the website proxy using real TinyLlama training on Apple M2 Max / MPS. The three schools enrolled separate synthetic datasets, with unequal training counts:
+
+| School | Training examples | Held-out examples | FedAvg weight |
+| --- | ---: | ---: | ---: |
+| University of Georgia | 19 | 5 | 44.19% |
+| Georgia Tech | 14 | 4 | 32.56% |
+| Emory University | 10 | 2 | 23.26% |
+
+| Global checkpoint | Pooled answer loss | Perplexity | Held-out answer tokens |
+| --- | ---: | ---: | ---: |
+| Base | 4.43093 | 84.009 | 400 |
+| Round 1 | 4.28511 | 72.610 | 400 |
+| Round 2 | 4.06142 | 58.056 | 400 |
+
+Training and evaluation took 26.8 seconds with the model already cached. These measurements concern this small synthetic experiment only. They do not establish general quality, privacy, or convergence. The method averages LoRA factors, with the limitations described in [federation.md](federation.md).
+
+The smoke verified identical starting-adapter digests within each round, inheritance of the prior aggregate, sample weights, token-weighted pooled loss, saved-global inference, participant access, guest denial before sharing, guest inference after sharing, redacted reports, and participant revocation. Guest access was revoked afterward. Artifacts remain in ignored `.local/` storage.
+
+Software checks passed: optimized Next.js build, TypeScript, Prettier, and 28 Python tests. The optional live proxy check is run separately with `CAMPUS_TEST_URL`. New ML tests cover weighted tensor arithmetic, no tensor aliasing, round inheritance, frozen base weights, real tiny-model gradient updates, save/reload fidelity, cross-school exact-question split overlap, and late failures without incomplete round checkpoints. API tests cover consent, tenant checks, atomic lifecycle transitions, report redaction, model access, and interrupted workers. CI additionally runs the ML tests on CPU using a randomly initialized tiny model without downloading pretrained weights.
+
+Manual browser checks passed for creating a draft, switching schools, joining, withdrawing and rejoining, owner start, progress polling, measured results, expanded round tables, report download, global-model selection, real inference, and response retention across tab changes. A separate two-school, one-round run was started and completed through the UI. Owner sharing, guest read-only access, participant revocation, and unavailable revoked-model links were exercised. Desktop and 390px mobile layouts were inspected with no page overflow. The browser pass found and fixed duplicate React keys that could duplicate the federation view during navigation. These checks are manual, not a committed browser test suite.
+
+## Independent school runs, September 10, 2026
+
 Verified on September 10, 2026 on an Apple M2 Max with 64 GiB unified memory, using Python 3.12, PyTorch 2.10, MPS, and the pinned TinyLlama revision defined in [backend/ml.py](../backend/ml.py).
 
 ## Measured model results

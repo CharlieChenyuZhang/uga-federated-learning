@@ -27,7 +27,7 @@ export function useModelTools(signedIn: boolean) {
           {
             name: "list_available_campus_models",
             description:
-              "List the base model and school adapters available to the signed-in lab account. Does not train, share, or modify anything.",
+              "List the base model, school adapters, and global federated models available to the signed-in lab account. Does not train, share, or modify anything.",
             inputSchema: {
               type: "object",
               properties: {},

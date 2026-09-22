@@ -1,4 +1,4 @@
-"""Local SQLite storage. Every private record belongs to exactly one institution."""
+"""Local SQLite storage for institution-owned data and consented federations."""
 
 import hashlib
 import json
@@ -66,9 +66,13 @@ def initialize():
         CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS datasets (id TEXT PRIMARY KEY, school_id TEXT NOT NULL, name TEXT NOT NULL, rows TEXT NOT NULL, row_count INTEGER NOT NULL, created REAL NOT NULL, synthetic INTEGER NOT NULL DEFAULT 0);
         CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, school_id TEXT NOT NULL, dataset_id TEXT NOT NULL REFERENCES datasets(id), name TEXT NOT NULL, status TEXT NOT NULL, steps INTEGER NOT NULL, step INTEGER NOT NULL DEFAULT 0, phase TEXT NOT NULL, history TEXT NOT NULL DEFAULT '[]', metrics TEXT, error TEXT, shared INTEGER NOT NULL DEFAULT 0, created REAL NOT NULL, finished REAL);
+        CREATE TABLE IF NOT EXISTS federations (id TEXT PRIMARY KEY, owner_school_id TEXT NOT NULL, name TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'draft', rounds INTEGER NOT NULL, local_steps INTEGER NOT NULL, round INTEGER NOT NULL DEFAULT 0, phase TEXT NOT NULL DEFAULT 'Waiting for participants', history TEXT NOT NULL DEFAULT '[]', metrics TEXT, error TEXT, shared INTEGER NOT NULL DEFAULT 0, created REAL NOT NULL, finished REAL);
+        CREATE TABLE IF NOT EXISTS federation_participants (federation_id TEXT NOT NULL REFERENCES federations(id), school_id TEXT NOT NULL, dataset_id TEXT NOT NULL REFERENCES datasets(id), joined REAL NOT NULL, acknowledged INTEGER NOT NULL CHECK (acknowledged = 1), PRIMARY KEY (federation_id, school_id));
         CREATE INDEX IF NOT EXISTS idx_datasets_school ON datasets(school_id);
         CREATE INDEX IF NOT EXISTS idx_runs_school ON runs(school_id);
         CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires);
+        CREATE INDEX IF NOT EXISTS idx_federation_participants_school ON federation_participants(school_id);
+        CREATE INDEX IF NOT EXISTS idx_federation_participants_dataset ON federation_participants(dataset_id);
         """)
         for uid, (name, role, school) in ACCOUNTS.items():
             if not db.execute("SELECT 1 FROM users WHERE id=?", (uid,)).fetchone():
@@ -89,6 +93,10 @@ def initialize():
         db.execute("DELETE FROM sessions WHERE expires < ?", (time.time(),))
         db.execute(
             "UPDATE runs SET status='failed',phase='Interrupted',error='The local worker stopped before this run finished. Start a new run.',finished=? WHERE status IN ('queued','running')",
+            (time.time(),),
+        )
+        db.execute(
+            "UPDATE federations SET status='failed',phase='Interrupted',error='The local worker stopped before this federation finished. Create a new federation to retry.',finished=? WHERE status IN ('queued','running')",
             (time.time(),),
         )
 
@@ -128,6 +136,22 @@ def update_run(run_id, **values):
     execute(
         f"UPDATE runs SET {','.join(k + '=?' for k in cooked)} WHERE id=?",
         (*cooked.values(), run_id),
+    )
+
+
+def update_federation(federation_id, **values):
+    allowed = {
+        "status", "round", "phase", "history", "metrics", "error", "shared", "finished"
+    }
+    if not values or not set(values) <= allowed:
+        raise ValueError("Invalid federation update")
+    cooked = {
+        k: json.dumps(v, allow_nan=False) if k in {"history", "metrics"} else v
+        for k, v in values.items()
+    }
+    execute(
+        f"UPDATE federations SET {','.join(k + '=?' for k in cooked)} WHERE id=?",
+        (*cooked.values(), federation_id),
     )
 
 
